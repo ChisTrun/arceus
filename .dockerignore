@@ -9,3 +9,5 @@ backend/cmd/assets/generated_assets.go
 
 # docs
 docs/
+
+vendor
