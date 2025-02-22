@@ -1,0 +1,44 @@
+project:
+  name: arceus
+  monorepo: false
+  go_package: arceus
+
+extend: # extend file name
+
+generate:
+  allow_custom_options: true
+  profiling:
+    port: 6060
+    enable: false
+  dockerfile:
+    enable: true
+  ent:
+    enable: true
+  command:
+    enable: true
+  server:
+    enable: false
+    path: internal/server
+  grpc_server:
+    enable: true
+    path: internal/server
+  grpc_gateway:
+    enable: true
+  client:
+    enable: false
+    path: pkg/client
+  helm:
+    enable: false
+  http_server:
+    enable: true
+  proto:
+    go:
+      - arceus.proto
+      - arceus_config.proto
+      - arceus_code.proto
+    js:
+      - arceus.proto
+      - arceus_code.proto
+    imports: # optional
+  grpc_log:
+    enable: false

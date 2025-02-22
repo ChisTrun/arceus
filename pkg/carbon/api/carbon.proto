@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+package greyhole.carbon;
+
+option go_package = "arceus/pkg/carbon/api;carbon";
+
+import "validate/validate.proto";
+
+message Logger {
+  enum Level {
+    UNSPECIFIED = 0;
+    DEBUG       = 1;
+    INFO        = 2;
+    WARN        = 3;
+    ERROR       = 4;
+    PANIC       = 5;
+    FATAL       = 6;
+  }
+  Level level = 1;
+  bool pretty = 2;
+}
+
+message TCPSocket {
+  string address = 1 [(validate.rules).string = { min_bytes: 1 }];
+  uint32 port    = 2 [(validate.rules).uint32 = { lte: 65535 }];
+  bool secure    = 3;
+}
+
+message UnixSocket {
+  string path = 1 [(validate.rules).string = { min_bytes: 1 }];
+}
+
+message Listener {
+  oneof socket {
+    option (validate.required) = true;
+
+    TCPSocket tcp   = 1;
+    UnixSocket unix = 2;
+  }
+}
+
+message Database {
+  string host = 1 [(validate.rules).string = { min_bytes: 1 }];
+  uint32 port = 2 [(validate.rules).uint32 = { lte: 65535 }];
+  string name = 3 [(validate.rules).string = { min_bytes: 1 }];  // database name
+
+  bool tracing_enabled = 4;
+  bool debug           = 5;
+
+  uint32 max_idle_conns     = 6;
+  uint32 max_open_conns     = 7;
+  uint32 conn_max_life_time = 8;  // minutes
+  uint32 conn_max_idle_time = 9;  // minutes
+
+  AuthMethod auth_method = 10;
+
+  // AUTH_METHOD_USERNAME_PASSWORD
+  string username = 11 [(validate.rules).string = { min_bytes: 1 }];
+  string password = 12;
+
+  // AUTH_METHOD_AWS_IAM
+  string aws_region = 13;
+
+  enum AuthMethod {
+    AUTH_METHOD_UNSPECIFIED       = 0;
+    AUTH_METHOD_NONE              = 1;
+    AUTH_METHOD_USERNAME_PASSWORD = 2;
+    AUTH_METHOD_AWS_IAM           = 4;
+  }
+}
+
+message JwtSigning {
+  string private_key      = 1 [(validate.rules).string = { min_bytes: 1 }];
+  string password         = 2;
+  int64 expires_time      = 3;  // in seconds
+  string issuer           = 4 [(validate.rules).string.min_len = 1];
+  string default_audience = 5;
+}
+
+message S3 {
+  string access_key_id     = 1;  // require for cloudflare, optional for aws
+  string secret_access_key = 2;  // require for cloudflare, optional for aws
+  string region            = 3;  // require for aws
+  string bucket            = 4 [(validate.rules).string = { min_bytes: 1 }];
+  string host              = 5;  // optional
+  string endpoint_url      = 6;  // require for custom s3 compatible storage like minio, cloudflare, backblaze
+  Provider provider        = 7;  // default aws
+  enum Provider {
+    PROVIDER_UNSPECIFIED = 0;
+    AWS                  = 1;
+    CUSTOM               = 2;
+  }
+}
+
+message NATS {
+  // Name is an optional name label which will be sent to the server
+  // on CONNECT to identify the client.
+  string name = 1;
+  // The url can contain username/password semantics. e.g. nats://derek:pass@localhost:4222
+  // Comma separated arrays are also supported, e.g. urlA, urlB.
+  string url = 2;
+}
+
+message Profiling {
+  bool enable = 1;
+  uint32 port = 2 [(validate.rules).uint32 = { lte: 65535 }];
+}
+
+message TLS {
+  bool enabled              = 1;
+  string cert               = 2;
+  string key                = 3;
+  string ca                 = 4;
+  bool insecure_skip_verify = 5;
+}
+
+message Redis {
+  // host:port address.
+  string address = 1 [(validate.rules).string = { min_bytes: 1 }];
+  // Use the specified Username to authenticate the current connection
+  // with one of the connections defined in the ACL list when connecting
+  // to a Redis 6.0 instance, or greater, that is using the Redis ACL system.
+  string username = 2;
+  // Optional password. Must match the password specified in the
+  // requirepass server configuration option (if connecting to a Redis 5.0 instance, or lower),
+  // or the User Password when connecting to a Redis 6.0 instance, or greater,
+  // that is using the Redis ACL system.
+  string password = 3;
+  // Database to be selected after connecting to the server.
+  int32 db = 4;
+  // Maximum number of retries before giving up.
+  // Default is 3 retries; -1 (not 0) disables retries.
+  int32 max_retries = 5;
+  // Minimum backoff between each retry.
+  // Default is 8 milliseconds; -1 disables backoff.
+  int64 min_retry_backoff = 6;  // milliseconds
+  // Maximum backoff between each retry.
+  // Default is 512 milliseconds; -1 disables backoff.
+  int64 max_retry_backoff = 7;  // milliseconds
+  // Dial timeout for establishing new connections.
+  // Default is 5 seconds.
+  int64 dial_timeout = 8;  // milliseconds
+  // Timeout for socket reads. If reached, commands will fail
+  // with a timeout instead of blocking. Use value -1 for no timeout and 0 for default.
+  // Default is 3 seconds.
+  int64 read_timeout = 9;  // milliseconds
+  // Timeout for socket writes. If reached, commands will fail
+  // with a timeout instead of blocking.
+  // Default is ReadTimeout.
+  int64 write_timeout = 10;  // milliseconds
+  // Type of connection pool.
+  // true for FIFO pool, false for LIFO pool.
+  // Note that fifo has higher overhead compared to lifo.
+  bool pool_fifo = 11;
+  // Maximum number of socket connections.
+  // Default is 10 connections per every available CPU as reported by runtime.GOMAXPROCS.
+  int32 pool_size = 12;
+  // Minimum number of idle connections which is useful when establishing
+  // new connection is slow.
+  int32 min_idle_conns = 13;
+  // Connection age at which client retires (closes) the connection.
+  // Default is to not close aged connections.
+  int64 max_conn_age = 14;  // milliseconds
+  // Amount of time client waits for connection if all connections
+  // are busy before returning an error.
+  // Default is ReadTimeout + 1 second.
+  int64 pool_timeout = 15;  // milliseconds
+  // Amount of time after which client closes idle connections.
+  // Should be less than server's timeout.
+  // Default is 5 minutes. -1 disables idle timeout check.
+  int64 idle_timeout = 16;  // milliseconds
+  // Frequency of idle checks made by idle connections reaper.
+  // Default is 1 minute. -1 disables idle connections reaper,
+  // but idle connections are still discarded by the client
+  // if IdleTimeout is set.
+  int64 idle_check_frequency = 17;  // milliseconds
+  // Enables read only queries on slave nodes.
+  bool read_only = 18;
+  // TLS Config to use. When set TLS will be negotiated.
+  TLS tls = 19;
+
+  string namespace = 20;
+  bool debug       = 21;
+}
+
+message Kafka {
+  string brokers = 1 [(validate.rules).string.min_len = 1];  // multiple values separated by commas
+  TLS tls        = 2;
+  SASL sasl      = 3;
+}
+
+message SASL {
+  // Use enum here for easy to set value from environment variable
+  // Since oneof could not be done like that
+  Mechanism mechanism = 1;
+  Iam iam             = 2;
+  Scram scram         = 3;
+  Plain plain         = 4;
+
+  enum Mechanism {
+    UNAUTHENTICATED = 0;
+    AWS_IAM         = 1;
+    SCRAM           = 2;
+    PLAIN           = 3;
+  }
+
+  message Iam {
+    string access_key_id     = 1;  // optional
+    string secret_access_key = 2;  // optional
+    string session_token     = 3;  // optional
+    string region            = 4 [(validate.rules).string.min_len = 1];
+  }
+
+  message Scram {
+    // SCRAM-SHA-256
+    // SCRAM-SHA-512
+    string algorithm = 1 [(validate.rules).string = { in: [ 'SCRAM-SHA-256', 'SCRAM-SHA-512' ] }];
+    string username  = 2 [(validate.rules).string.min_len = 1];
+    string password  = 3 [(validate.rules).string.min_len = 1];
+  }
+
+  message Plain {
+    string username = 1 [(validate.rules).string.min_len = 1];
+    string password = 2 [(validate.rules).string.min_len = 1];
+  }
+}

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package arceus;
+
+option go_package = "arceus/api;arceus";
+
+import "validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+service Arceus {
+
+  rpc GenerateText (GenerateTextRequest) returns (GenerateTextResponse){
+    option (google.api.http) = {
+      get: "/api/test"
+    };
+  };
+
+}
+
+enum SortType {
+    SORT_TYPE_UNKNOWN = 0;
+    SORT_TYPE_ASC =  1;
+    SORT_TYPE_DESC = 2;
+}
+
+enum Role {
+    ROLE_UNKNOWN = 0;
+    ROLE_BOT = 1;
+    ROLE_USER = 2;
+}
+
+message Message {
+    string content = 1;
+    Role role = 2;  
+}
+
+message Conversation {
+  uint64 id = 1;
+  repeated Message messages = 2;  
+}
+
+message SortMethod {
+    string name = 1 [
+      (validate.rules).string = {
+        min_len: 1
+      }
+    ];
+    SortType type = 2;
+}
+
+message GenerateTextRequest {
+  string content = 1;
+  string model = 2;
+  optional uint64 conversation_id = 3;
+}
+
+message GenerateTextResponse {
+  string content = 1;
+  uint64 conversation_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
