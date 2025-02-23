@@ -18,6 +18,7 @@ message Config {
   greyhole.redis.Redis redis = 4  [(validate.rules).message = {required : true}];
   greyhole.carbon.Listener http_listener = 8 [ (validate.rules).message = {required : true} ];
   AiProvider mistral = 5;  
+  AiProvider openai = 6;  
 }
 
 message AiProvider {

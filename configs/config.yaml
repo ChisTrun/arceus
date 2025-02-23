@@ -37,3 +37,11 @@ mistral:
   endpoint: ${MISTRAL_ENDPOINT}
   api_key: ${MISTRAL_API_KEY}
   enable: true
+
+openai:
+  tag: "openai"
+  models:
+    - "gpt-4o-mini"
+  endpoint: ${OPENAI_ENDPOINT}
+  api_key: ${OPENAI_API_KEY}
+  enable: true

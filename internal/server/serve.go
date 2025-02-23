@@ -16,6 +16,7 @@ import (
 	"arceus/internal/feature"
 	"arceus/internal/provider"
 	"arceus/internal/provider/mistral"
+	"arceus/internal/provider/openai"
 	"arceus/internal/repository"
 	"arceus/internal/server/arceus"
 	config "arceus/pkg/config"
@@ -45,8 +46,9 @@ func Serve(cfg *config.Config) {
 	repo := repository.New(ent)
 
 	mistralProvider := mistral.New(cfg)
+	openaiProvider := openai.New(cfg)
 
-	feature := feature.New(repo, []provider.Provider{mistralProvider})
+	feature := feature.New(repo, []provider.Provider{mistralProvider, openaiProvider})
 
 	arceusServer := arceus.NewServer(feature)
 
