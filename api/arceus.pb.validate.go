@@ -73,7 +73,7 @@ type MessageMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m MessageMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -208,7 +208,7 @@ type ConversationMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ConversationMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -320,7 +320,7 @@ type SortMethodMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m SortMethodMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -428,7 +428,7 @@ type GenerateTextRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GenerateTextRequestMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -563,7 +563,7 @@ type GenerateTextResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m GenerateTextResponseMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}

@@ -253,8 +253,9 @@ func (cq *ConversationQuery) Clone() *ConversationQuery {
 		inters:     append([]Interceptor{}, cq.inters...),
 		predicates: append([]predicate.Conversation{}, cq.predicates...),
 		// clone intermediate query.
-		sql:  cq.sql.Clone(),
-		path: cq.path,
+		sql:       cq.sql.Clone(),
+		path:      cq.path,
+		modifiers: append([]func(*sql.Selector){}, cq.modifiers...),
 	}
 }
 

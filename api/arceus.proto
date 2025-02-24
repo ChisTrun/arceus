@@ -13,11 +13,14 @@ service Arceus {
 
   rpc GenerateText (GenerateTextRequest) returns (GenerateTextResponse){
     option (google.api.http) = {
-      get: "/api/test"
+      post: "/api/chat/completions"
     };
   };
 
 }
+
+
+
 
 enum SortType {
     SORT_TYPE_UNKNOWN = 0;
