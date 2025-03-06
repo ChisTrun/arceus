@@ -1,4 +1,4 @@
-name: Update Submodule in Parent Repo
+name: deploy vps
 
 on:
   workflow_run:

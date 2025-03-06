@@ -9,6 +9,7 @@ COPY . .
 
 RUN go build -o server ./cmd
 EXPOSE 8080
+EXPOSE 8081
 
 CMD ["./server", "-c", "./configs/config.yaml"]
 
