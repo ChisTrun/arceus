@@ -13,6 +13,7 @@ service Arceus {
   rpc GenerateText (GenerateTextRequest) returns (GenerateTextResponse){
     option (google.api.http) = {
       post: "/api/chat/completions"
+      body: "*"
     };
   };
 
