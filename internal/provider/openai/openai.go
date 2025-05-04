@@ -19,7 +19,7 @@ type openai struct {
 
 func New(cfg *cfg.Config) provider.Provider {
 	if cfg.GetOpenai() == nil || !cfg.GetOpenai().Enable {
-		return &Noop{}
+		return &provider.Noop{}
 	}
 
 	return &openai{

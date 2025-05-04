@@ -1,4 +1,4 @@
-package mistral
+package provider
 
 import (
 	arceus "arceus/api"

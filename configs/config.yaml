@@ -45,3 +45,11 @@ openai:
   endpoint: ${OPENAI_ENDPOINT}
   api_key: ${OPENAI_API_KEY}
   enable: true
+
+gemini:
+  tag: "gemini"
+  models:
+    - "gemini-2.0-flash"
+  endpoint: ""
+  api_key: ${GEMINI_API_KEY}
+  enable: true

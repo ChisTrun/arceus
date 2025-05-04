@@ -19,7 +19,7 @@ type mistral struct {
 
 func New(cfg *cfg.Config) provider.Provider {
 	if cfg.GetMistral() == nil || !cfg.GetMistral().Enable {
-		return &Noop{}
+		return &provider.Noop{}
 	}
 
 	return &mistral{

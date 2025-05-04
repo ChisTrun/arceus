@@ -314,6 +314,35 @@ func (m *Config) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetGemini()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ConfigValidationError{
+					field:  "Gemini",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ConfigValidationError{
+					field:  "Gemini",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGemini()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ConfigValidationError{
+				field:  "Gemini",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ConfigMultiError(errors)
 	}
@@ -327,7 +356,7 @@ type ConfigMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m ConfigMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
@@ -434,7 +463,7 @@ type AiProviderMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
 func (m AiProviderMultiError) Error() string {
-	var msgs []string
+	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
 	}
