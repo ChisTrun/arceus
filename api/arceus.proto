@@ -63,4 +63,12 @@ message GenerateTextResponse {
   string content = 1;
   uint64 conversation_id = 2;
   google.protobuf.Timestamp created_at = 3;
+  Usage usage = 4;
 }
+
+message Usage {
+  int32 prompt_tokens = 1;
+  int32 total_tokens = 2;
+  int32 completion_tokens = 3;
+}
+

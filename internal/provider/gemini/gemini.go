@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkoukk/tiktoken-go"
 	"google.golang.org/genai"
 )
 
@@ -35,32 +36,34 @@ func New(cfg *cfg.Config) provider.Provider {
 	}
 }
 
-func (g *gemini) GenerateText(model string, messages []*arceus.Message) (*arceus.Message, error) {
+func (g *gemini) GenerateText(model string, messages []*arceus.Message) (*arceus.Message, *arceus.Usage, error) {
 
-	result, err := g.callApiGenerateText(model, messages)
+	result, usage, err := g.callApiGenerateText(model, messages)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return &arceus.Message{
 		Content: result,
 		Role:    arceus.Role_ROLE_BOT,
-	}, nil
+	}, usage, nil
 }
 
 func (g *gemini) GetAvailableModels() ([]string, error) {
 	return g.availableModels, nil
 }
 
-func (g *gemini) callApiGenerateText(model string, messages []*arceus.Message) (string, error) {
+func (g *gemini) callApiGenerateText(model string, messages []*arceus.Message) (string, *arceus.Usage, error) {
 
 	if len(messages) == 0 {
-		return "", fmt.Errorf("no messages provided")
+		return "", nil, fmt.Errorf("no messages provided")
 	}
 
 	ctx := context.Background()
 
 	history := []*genai.Content{}
+
+	promptTokens := int32(0)
 
 	for i := 0; i < len(messages)-1; i++ {
 		switch messages[i].Role {
@@ -69,22 +72,40 @@ func (g *gemini) callApiGenerateText(model string, messages []*arceus.Message) (
 		case arceus.Role_ROLE_BOT:
 			history = append(history, genai.NewContentFromText(messages[i].Content, genai.RoleModel))
 		default:
-			return "", fmt.Errorf("invalid role %v", messages[i].Role)
+			return "", nil, fmt.Errorf("invalid role %v", messages[i].Role)
 		}
+		tokens, _ := countTokens(messages[i].Content)
+		promptTokens += tokens
 	}
 
 	chat, err := g.client.Chats.Create(ctx, model, nil, history)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	res, _ := chat.SendMessage(ctx, genai.Part{Text: messages[len(messages)-1].Content})
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	if len(res.Candidates) > 0 {
-		return res.Candidates[0].Content.Parts[0].Text, nil
+		mss := res.Candidates[0].Content.Parts[0].Text
+		completionTokens, _ := countTokens(mss)
+
+		return mss, &arceus.Usage{
+			PromptTokens:     promptTokens,
+			CompletionTokens: completionTokens,
+			TotalTokens:      promptTokens + completionTokens,
+		}, nil
 	}
-	return "", fmt.Errorf("no response from model")
+	return "", nil, fmt.Errorf("no response from model")
+}
+
+func countTokens(text string) (int32, error) {
+	enc, err := tiktoken.EncodingForModel("gpt-3.5-turbo")
+	if err != nil {
+		return 0, fmt.Errorf("failed to load encoder: %v", err)
+	}
+	tokens := enc.Encode(text, nil, nil)
+	return int32(len(tokens)), nil
 }

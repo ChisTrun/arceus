@@ -69,7 +69,7 @@ func (l *llm) GenerateText(ctx context.Context, req *arceus.GenerateTextRequest)
 		Role:    arceus.Role_ROLE_USER,
 	})
 
-	mss, err := aiProvider.GenerateText(req.Model, conversation.Context.Messages)
+	mss, usage, err := aiProvider.GenerateText(req.Model, conversation.Context.Messages)
 	if err != nil {
 		return nil, err
 	}
@@ -87,5 +87,6 @@ func (l *llm) GenerateText(ctx context.Context, req *arceus.GenerateTextRequest)
 		Content:        mss.Content,
 		ConversationId: conversation.ID,
 		CreatedAt:      timestamppb.Now(),
+		Usage:          usage,
 	}, nil
 }

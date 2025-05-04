@@ -6,5 +6,5 @@ import (
 
 type Provider interface {
 	GetAvailableModels() ([]string, error)
-	GenerateText(model string, messages []*arceus.Message) (*arceus.Message, error)
+	GenerateText(model string, messages []*arceus.Message) (*arceus.Message, *arceus.Usage, error)
 }

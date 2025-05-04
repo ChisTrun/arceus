@@ -344,6 +344,7 @@ type GenerateTextResponse struct {
 	Content        string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 	ConversationId uint64                 `protobuf:"varint,2,opt,name=conversation_id,json=conversationId,proto3" json:"conversation_id,omitempty"`
 	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Usage          *Usage                 `protobuf:"bytes,4,opt,name=usage,proto3" json:"usage,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -399,6 +400,73 @@ func (x *GenerateTextResponse) GetCreatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *GenerateTextResponse) GetUsage() *Usage {
+	if x != nil {
+		return x.Usage
+	}
+	return nil
+}
+
+type Usage struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PromptTokens     int32                  `protobuf:"varint,1,opt,name=prompt_tokens,json=promptTokens,proto3" json:"prompt_tokens,omitempty"`
+	TotalTokens      int32                  `protobuf:"varint,2,opt,name=total_tokens,json=totalTokens,proto3" json:"total_tokens,omitempty"`
+	CompletionTokens int32                  `protobuf:"varint,3,opt,name=completion_tokens,json=completionTokens,proto3" json:"completion_tokens,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *Usage) Reset() {
+	*x = Usage{}
+	mi := &file_arceus_api_arceus_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Usage) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Usage) ProtoMessage() {}
+
+func (x *Usage) ProtoReflect() protoreflect.Message {
+	mi := &file_arceus_api_arceus_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Usage.ProtoReflect.Descriptor instead.
+func (*Usage) Descriptor() ([]byte, []int) {
+	return file_arceus_api_arceus_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Usage) GetPromptTokens() int32 {
+	if x != nil {
+		return x.PromptTokens
+	}
+	return 0
+}
+
+func (x *Usage) GetTotalTokens() int32 {
+	if x != nil {
+		return x.TotalTokens
+	}
+	return 0
+}
+
+func (x *Usage) GetCompletionTokens() int32 {
+	if x != nil {
+		return x.CompletionTokens
+	}
+	return 0
+}
+
 var File_arceus_api_arceus_proto protoreflect.FileDescriptor
 
 const file_arceus_api_arceus_proto_rawDesc = "" +
@@ -418,12 +486,17 @@ const file_arceus_api_arceus_proto_rawDesc = "" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x12\x14\n" +
 	"\x05model\x18\x02 \x01(\tR\x05model\x12,\n" +
 	"\x0fconversation_id\x18\x03 \x01(\x04H\x00R\x0econversationId\x88\x01\x01B\x12\n" +
-	"\x10_conversation_id\"\x94\x01\n" +
+	"\x10_conversation_id\"\xb9\x01\n" +
 	"\x14GenerateTextResponse\x12\x18\n" +
 	"\acontent\x18\x01 \x01(\tR\acontent\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\x04R\x0econversationId\x129\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt*H\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12#\n" +
+	"\x05usage\x18\x04 \x01(\v2\r.arceus.UsageR\x05usage\"|\n" +
+	"\x05Usage\x12#\n" +
+	"\rprompt_tokens\x18\x01 \x01(\x05R\fpromptTokens\x12!\n" +
+	"\ftotal_tokens\x18\x02 \x01(\x05R\vtotalTokens\x12+\n" +
+	"\x11completion_tokens\x18\x03 \x01(\x05R\x10completionTokens*H\n" +
 	"\bSortType\x12\x15\n" +
 	"\x11SORT_TYPE_UNKNOWN\x10\x00\x12\x11\n" +
 	"\rSORT_TYPE_ASC\x10\x01\x12\x12\n" +
@@ -448,7 +521,7 @@ func file_arceus_api_arceus_proto_rawDescGZIP() []byte {
 }
 
 var file_arceus_api_arceus_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_arceus_api_arceus_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_arceus_api_arceus_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_arceus_api_arceus_proto_goTypes = []any{
 	(SortType)(0),                 // 0: arceus.SortType
 	(Role)(0),                     // 1: arceus.Role
@@ -457,20 +530,22 @@ var file_arceus_api_arceus_proto_goTypes = []any{
 	(*SortMethod)(nil),            // 4: arceus.SortMethod
 	(*GenerateTextRequest)(nil),   // 5: arceus.GenerateTextRequest
 	(*GenerateTextResponse)(nil),  // 6: arceus.GenerateTextResponse
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*Usage)(nil),                 // 7: arceus.Usage
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
 }
 var file_arceus_api_arceus_proto_depIdxs = []int32{
 	1, // 0: arceus.Message.role:type_name -> arceus.Role
 	2, // 1: arceus.Conversation.messages:type_name -> arceus.Message
 	0, // 2: arceus.SortMethod.type:type_name -> arceus.SortType
-	7, // 3: arceus.GenerateTextResponse.created_at:type_name -> google.protobuf.Timestamp
-	5, // 4: arceus.Arceus.GenerateText:input_type -> arceus.GenerateTextRequest
-	6, // 5: arceus.Arceus.GenerateText:output_type -> arceus.GenerateTextResponse
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8, // 3: arceus.GenerateTextResponse.created_at:type_name -> google.protobuf.Timestamp
+	7, // 4: arceus.GenerateTextResponse.usage:type_name -> arceus.Usage
+	5, // 5: arceus.Arceus.GenerateText:input_type -> arceus.GenerateTextRequest
+	6, // 6: arceus.Arceus.GenerateText:output_type -> arceus.GenerateTextResponse
+	6, // [6:7] is the sub-list for method output_type
+	5, // [5:6] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_arceus_api_arceus_proto_init() }
@@ -485,7 +560,7 @@ func file_arceus_api_arceus_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_arceus_api_arceus_proto_rawDesc), len(file_arceus_api_arceus_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

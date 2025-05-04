@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
 )
 
 type mistral struct {
@@ -29,24 +30,24 @@ func New(cfg *cfg.Config) provider.Provider {
 	}
 }
 
-func (m *mistral) GenerateText(model string, messages []*arceus.Message) (*arceus.Message, error) {
+func (m *mistral) GenerateText(model string, messages []*arceus.Message) (*arceus.Message, *arceus.Usage, error) {
 
-	result, err := m.callApiGenerateText(model, messages)
+	result, usage, err := m.callApiGenerateText(model, messages)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return &arceus.Message{
 		Content: result,
 		Role:    arceus.Role_ROLE_BOT,
-	}, nil
+	}, usage, nil
 }
 
 func (m *mistral) GetAvailableModels() ([]string, error) {
 	return m.availableModels, nil
 }
 
-func (m *mistral) callApiGenerateText(model string, messages []*arceus.Message) (string, error) {
+func (m *mistral) callApiGenerateText(model string, messages []*arceus.Message) (string, *arceus.Usage, error) {
 	url := fmt.Sprintf("%v/%v", m.endpoint, "v1/chat/completions")
 
 	mistralMss := []Message{}
@@ -60,7 +61,7 @@ func (m *mistral) callApiGenerateText(model string, messages []*arceus.Message) 
 		case arceus.Role_ROLE_BOT:
 			tmp.Role = "assistant"
 		default:
-			return "", fmt.Errorf("invalid role %v", message.Role)
+			return "", nil, fmt.Errorf("invalid role %v", message.Role)
 		}
 
 		mistralMss = append(mistralMss, tmp)
@@ -73,12 +74,12 @@ func (m *mistral) callApiGenerateText(model string, messages []*arceus.Message) 
 
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
-		return "", fmt.Errorf("error marshalling JSON: %v", err)
+		return "", nil, fmt.Errorf("error marshalling JSON: %v", err)
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", fmt.Errorf("error creating request: %v", err)
+		return "", nil, fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -87,27 +88,32 @@ func (m *mistral) callApiGenerateText(model string, messages []*arceus.Message) 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error making request: %v", err)
+		return "", nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("HTTP error! Status: %d", resp.StatusCode)
+		return "", nil, fmt.Errorf("HTTP error! Status: %d", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("error reading response body: %v", err)
+		return "", nil, fmt.Errorf("error reading response body: %v", err)
 	}
 
 	response, err := ParseChatResponse(body)
 	if err != nil {
-		return "", fmt.Errorf("error parsing response: %v", err)
+		return "", nil, fmt.Errorf("error parsing response: %v", err)
 	}
 
 	if len(response.Choices) == 0 {
-		return "", fmt.Errorf("empty response")
+		return "", nil, fmt.Errorf("empty response")
 	}
 
-	return response.Choices[0].Message.Content, nil
+	return response.Choices[0].Message.Content, &arceus.Usage{
+		PromptTokens:     int32(response.Usage.PromptTokens),
+		TotalTokens:      int32(response.Usage.TotalTokens),
+		CompletionTokens: int32(response.Usage.CompletionTokens),
+	}, nil
 }
+
