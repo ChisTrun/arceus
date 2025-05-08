@@ -83,7 +83,7 @@ func (g *gemini) callApiGenerateText(model string, messages []*arceus.Message) (
 		return "", nil, err
 	}
 
-	res, _ := chat.SendMessage(ctx, genai.Part{Text: messages[len(messages)-1].Content})
+	res, err := chat.SendMessage(ctx, genai.Part{Text: messages[len(messages)-1].Content})
 	if err != nil {
 		return "", nil, err
 	}
