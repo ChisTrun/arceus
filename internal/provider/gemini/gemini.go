@@ -31,7 +31,7 @@ func New(cfg *cfg.Config) provider.Provider {
 	}
 
 	return &gemini{
-		availableModels: cfg.GetMistral().Models,
+		availableModels: cfg.GetGemini().Models,
 		client:          client,
 	}
 }
