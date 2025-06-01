@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-
-	"github.com/DataDog/datadog-go/statsd"
 	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	config "arceus/pkg/carbon/pkg/config"
 	"arceus/pkg/logger/pkg/logging"
@@ -18,8 +16,6 @@ import (
 	"google.golang.org/grpc/health"
 	healthv1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
-	grpctrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/google.golang.org/grpc"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	mykit "arceus/pkg/mykit/pkg/api"
 
 	conf "arceus/pkg/config"
@@ -27,25 +23,10 @@ import (
 
 func Run(f *config.Flags) {
 	cfg := loadConfig(f)
-
-	tracer.Start()
-	defer tracer.Stop()
-
 	Serve(cfg)
 }
 
 func newService(cfg *conf.Config, opts ...mykit.Option) mykit.Service {
-	statsd, err := statsd.New(os.Getenv("DOGSTATSD_HOST_IP") + ":8125")
-	if err != nil {
-		logging.NewTmpLogger().Error("fail to create datadog client", zap.Error(err))
-	}
-	statsd.Namespace = "gostatsd."
-
-	err = logging.InitLogger(cfg.Logger)
-	if err != nil {
-		logging.NewTmpLogger().Error("fail to init logger", zap.Error(err))
-	}
-
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", cfg.Listener.GetTcp().Address, cfg.Listener.GetTcp().Port))
 	if err != nil {
 		logging.NewTmpLogger().Fatal("failed to new listener", zap.Error(err))
@@ -57,13 +38,11 @@ func newService(cfg *conf.Config, opts ...mykit.Option) mykit.Service {
 	healthServer.SetServingStatus("", healthv1.HealthCheckResponse_SERVING)
 
 	defaultOpts := []mykit.Option{
-		mykit.Stats(statsd),
 		mykit.Logger(logger),
 		mykit.Listener(listener),
 		mykit.ServerOptions(
 			grpc.ChainUnaryInterceptor(
 				grpcctxtags.UnaryServerInterceptor(grpcctxtags.WithFieldExtractor(grpcctxtags.CodeGenRequestFieldExtractor)),
-				grpctrace.UnaryServerInterceptor(grpctrace.WithUntracedMethods("/grpc.health.v1.Health/Check"), grpctrace.WithServiceName(os.Getenv("DD_SERVICE"))),
 			),
 		),
 		mykit.HealthServer(healthServer),
